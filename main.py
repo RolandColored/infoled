@@ -38,6 +38,7 @@ if __name__ == "__main__":
         device = pygame(width=config['led'].getint('width'), height=config['led'].getint('height'),
                         mode='1', transform='led_matrix')
         logging.info('Falling back to emulator')
+
     # start show
     try:
         while True:
@@ -47,4 +48,3 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         logging.info('Shutting down')
-        pass
