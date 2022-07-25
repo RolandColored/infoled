@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 "luma.led-matrix" = "*"
 "luma.emulator" = "*"
+requests = "*"
 
 [dev-packages]
 
