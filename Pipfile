@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 "luma.led-matrix" = "*"
-"luma.emulator" = "*"
+"luma.emulator" = {version = "*", sys_platform = "== 'darwin'"}
 requests = "*"
 
 [dev-packages]
