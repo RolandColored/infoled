@@ -7,17 +7,20 @@ import time
 from logging.config import fileConfig
 
 import requests
+import spotipy
+from cachetools.func import ttl_cache
+from spotipy.oauth2 import SpotifyOAuth
 
 from display import Display
 
 
 def signal_handler(sig, frame):
     logging.info(f'Signal {sig} received')
-    display.print('Bye')
     display.cleanup()
     sys.exit(0)
 
 
+@ttl_cache(ttl=60*60)
 def current_temperature() -> str:
     api_key = os.environ['WEATHER_API_KEY']
     lat, lon = config['weather']['latitude'], config['weather']['longitude']
@@ -27,6 +30,18 @@ def current_temperature() -> str:
         return 'ERROR'
     temp_value = response.json()['main']['temp']
     return f'{temp_value:.0f} C'
+
+
+@ttl_cache(ttl=60)
+def current_music() -> str | None:
+    scope = 'user-read-playback-state'
+    spotify = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
+
+    result = spotify.currently_playing()
+    if result is not None:
+        return f"{result['item']['artists'][0]['name']} - {result['item']['name']}"
+    else:
+        return None
 
 
 if __name__ == "__main__":
@@ -40,5 +55,9 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     while True:
-        display.print(current_temperature())
-        time.sleep(60)
+        text = current_music()
+        if text is None:
+            text = current_temperature()
+
+        display.print(text)
+        time.sleep(2)

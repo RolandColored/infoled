@@ -32,7 +32,7 @@ class Display:
             with canvas(self.device) as draw:
                 text(draw, (padding, 0), message, fill='white', font=self.font)
         else:
-            show_message(self.device, message, y_offset=0, fill='white', font=self.font, scroll_delay=0.1)
+            show_message(self.device, message, y_offset=0, fill='white', font=self.font, scroll_delay=0.05)
 
     def cleanup(self):
         self.device.cleanup()
