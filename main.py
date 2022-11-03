@@ -1,25 +1,28 @@
 import configparser
 import logging
 import os
+import signal
+import sys
 import time
 from logging.config import fileConfig
 
 import requests
-from luma.core.interface.serial import spi, noop
-from luma.core.legacy import text
-from luma.core.legacy.font import proportional, CP437_FONT
-from luma.core.render import canvas
-from luma.led_matrix.device import max7219
 
-fileConfig('logging.ini')
-config = configparser.ConfigParser()
-config.read('config.ini')
+from display import Display
 
 
-def current_temperature():
+def signal_handler(sig, frame):
+    logging.info(f'Signal {sig} received')
+    display.print('Bye')
+    display.cleanup()
+    sys.exit(0)
+
+
+def current_temperature() -> str:
     api_key = os.environ['WEATHER_API_KEY']
     lat, lon = config['weather']['latitude'], config['weather']['longitude']
-    response = requests.get(f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}')
+    response = requests.get(
+        f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}')
     if not response.ok:
         return 'ERROR'
     temp_value = response.json()['main']['temp']
@@ -27,25 +30,15 @@ def current_temperature():
 
 
 if __name__ == "__main__":
-    # create display device
-    try:
-        serial = spi(port=0, device=0, gpio=noop())
-        device = max7219(serial, cascaded=4, block_orientation=90, rotate=2)
-        device.contrast(60)
-        print('Created device')
-    except ModuleNotFoundError:
-        from luma.emulator.device import pygame
+    fileConfig('logging.ini')
+    config = configparser.ConfigParser()
+    config.read('config.ini')
 
-        device = pygame(width=config['led'].getint('width'), height=config['led'].getint('height'),
-                        mode='1', transform='led_matrix')
-        logging.info('Falling back to emulator')
+    display = Display(config['led'].getint('width'), config['led'].getint('height'))
 
-    # start show
-    try:
-        while True:
-            with canvas(device) as draw:
-                text(draw, (4, 1), current_temperature(), fill='white', font=proportional(CP437_FONT))
-            time.sleep(60)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
-    except KeyboardInterrupt:
-        logging.info('Shutting down')
+    while True:
+        display.print(current_temperature())
+        time.sleep(60)
