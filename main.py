@@ -5,6 +5,7 @@ import signal
 import sys
 import time
 from logging.config import fileConfig
+from typing import Union
 
 import requests
 import spotipy
@@ -33,7 +34,7 @@ def current_temperature() -> str:
 
 
 @ttl_cache(ttl=60)
-def current_music() -> str | None:
+def current_music() -> Union[str, None]:
     scope = 'user-read-playback-state'
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
 
