@@ -40,7 +40,10 @@ def current_music() -> Union[str, None]:
 
     result = spotify.currently_playing()
     if result is not None:
-        return f"{result['item']['artists'][0]['name']} - {result['item']['name']}"
+        try:
+            return f"{result['item']['artists'][0]['name']} - {result['item']['name']}"
+        except (TypeError, KeyError):
+            return None
     else:
         return None
 
@@ -56,9 +59,12 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     while True:
-        text = current_music()
-        if text is None:
-            text = current_temperature()
+        try:
+            text = current_music()
+            if text is None:
+                text = current_temperature()
 
-        display.print(text)
-        time.sleep(2)
+            display.print(text)
+            time.sleep(2)
+        except Exception as e:
+            display.print(e.message)
