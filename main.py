@@ -67,4 +67,4 @@ if __name__ == "__main__":
             display.print(text)
             time.sleep(2)
         except Exception as e:
-            display.print(e.message)
+            logging.exception('Caught exception')
