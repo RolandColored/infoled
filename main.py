@@ -1,4 +1,5 @@
 import configparser
+import datetime
 import logging
 import os
 import signal
@@ -68,3 +69,5 @@ if __name__ == "__main__":
             time.sleep(2)
         except Exception as e:
             logging.exception('Caught exception')
+            display.print(datetime.datetime.now().strftime('%H:%M'))
+            time.sleep(600)
